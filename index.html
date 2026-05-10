@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>Visitor Parking Booking</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, sans-serif;
+}
+
+body{
+    background:#0F172A;
+    color:white;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    padding:20px;
+}
+
+.container{
+    width:100%;
+    max-width:450px;
+    background:#111827;
+    border-radius:25px;
+    padding:25px;
+    box-shadow:0 0 25px rgba(0,0,0,0.4);
+}
+
+.title{
+    text-align:center;
+    font-size:28px;
+    font-weight:bold;
+    margin-bottom:20px;
+}
+
+.legend{
+    display:flex;
+    justify-content:space-around;
+    margin-bottom:25px;
+    font-size:14px;
+}
+
+.legend-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.box{
+    width:18px;
+    height:18px;
+    border-radius:5px;
+}
+
+.available{
+    background:#22C55E;
+}
+
+.booked{
+    background:#EF4444;
+}
+
+.selected{
+    background:#3B82F6;
+}
+
+.section-title{
+    margin-top:20px;
+    margin-bottom:10px;
+    font-size:18px;
+    font-weight:bold;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:12px;
+}
+
+.parking{
+    height:70px;
+    border:none;
+    border-radius:18px;
+    font-size:18px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+    color:white;
+}
+
+.parking.available{
+    background:#22C55E;
+}
+
+.parking.booked{
+    background:#EF4444;
+    cursor:not-allowed;
+}
+
+.parking.selected{
+    background:#3B82F6;
+}
+
+.parking:hover{
+    transform:scale(1.05);
+}
+
+.selected-text{
+    margin-top:25px;
+    text-align:center;
+    font-size:18px;
+}
+
+.bottom-buttons{
+    display:flex;
+    gap:15px;
+    margin-top:25px;
+}
+
+.action-btn{
+    flex:1;
+    height:55px;
+    border:none;
+    border-radius:18px;
+    font-size:16px;
+    font-weight:bold;
+    cursor:pointer;
+    transition:0.3s;
+}
+
+.book-btn{
+    background:#14B8A6;
+    color:white;
+}
+
+.reset-btn{
+    background:#374151;
+    color:white;
+}
+
+.action-btn:hover{
+    transform:translateY(-2px);
+}
+
+.message{
+    margin-top:20px;
+    text-align:center;
+    font-size:15px;
+    color:#22C55E;
+    min-height:20px;
+}
+
+@media(max-width:500px){
+    .parking{
+        height:60px;
+        font-size:16px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="title">
+        Visitor Parking Booking
+    </div>
+
+    <div class="legend">
+
+        <div class="legend-item">
+            <div class="box available"></div>
+            <span>Available</span>
+        </div>
+
+        <div class="legend-item">
+            <div class="box booked"></div>
+            <span>Booked</span>
+        </div>
+
+        <div class="legend-item">
+            <div class="box selected"></div>
+            <span>Selected</span>
+        </div>
+
+    </div>
+
+    <!-- SECTION A -->
+    <div class="section-title">Section A</div>
+
+    <div class="grid">
+        <button class="parking available" data-id="A1">A1</button>
+        <button class="parking available" data-id="A2">A2</button>
+        <button class="parking available" data-id="A3">A3</button>
+        <button class="parking available" data-id="A4">A4</button>
+        <button class="parking available" data-id="A5">A5</button>
+        <button class="parking available" data-id="A6">A6</button>
+    </div>
+
+    <!-- SECTION B -->
+    <div class="section-title">Section B</div>
+
+    <div class="grid">
+        <button class="parking available" data-id="B1">B1</button>
+        <button class="parking available" data-id="B2">B2</button>
+        <button class="parking available" data-id="B3">B3</button>
+        <button class="parking available" data-id="B4">B4</button>
+        <button class="parking available" data-id="B5">B5</button>
+        <button class="parking available" data-id="B6">B6</button>
+    </div>
+
+    <!-- SECTION C -->
+    <div class="section-title">Section C</div>
+
+    <div class="grid">
+        <button class="parking available" data-id="C1">C1</button>
+        <button class="parking available" data-id="C2">C2</button>
+        <button class="parking available" data-id="C3">C3</button>
+        <button class="parking available" data-id="C4">C4</button>
+        <button class="parking available" data-id="C5">C5</button>
+    </div>
+
+    <div class="selected-text">
+        Selected Parking:
+        <span id="selectedParking">None</span>
+    </div>
+
+    <div class="bottom-buttons">
+
+        <button class="action-btn book-btn" id="bookBtn">
+            BOOK NOW
+        </button>
+
+        <button class="action-btn reset-btn" id="resetBtn">
+            RESET
+        </button>
+
+    </div>
+
+    <div class="message" id="message"></div>
+
+</div>
+
+<script>
+
+/*
+========================================
+VISITOR PARKING BOOKING SYSTEM
+========================================
+*/
+
+const parkingButtons = document.querySelectorAll('.parking');
+const selectedParkingText = document.getElementById('selectedParking');
+const message = document.getElementById('message');
+
+let selectedSpot = null;
+
+/*
+========================================
+LOAD SAVED BOOKINGS
+========================================
+*/
+
+let bookedSpots = JSON.parse(localStorage.getItem('bookedSpots')) || [];
+
+/*
+========================================
+SET BOOKED SPOTS
+========================================
+*/
+
+bookedSpots.forEach(spot => {
+
+    const button = document.querySelector(`[data-id="${spot}"]`);
+
+    if(button){
+        button.classList.remove('available');
+        button.classList.add('booked');
+    }
+
+});
+
+/*
+========================================
+SELECT PARKING
+========================================
+*/
+
+parkingButtons.forEach(button => {
+
+    button.addEventListener('click', () => {
+
+        if(button.classList.contains('booked')){
+            showMessage("Parking already booked!", "#EF4444");
+            return;
+        }
+
+        parkingButtons.forEach(btn => {
+
+            if(!btn.classList.contains('booked')){
+                btn.classList.remove('selected');
+                btn.classList.add('available');
+            }
+
+        });
+
+        button.classList.remove('available');
+        button.classList.add('selected');
+
+        selectedSpot = button.dataset.id;
+
+        selectedParkingText.textContent = selectedSpot;
+
+        showMessage("Parking selected: " + selectedSpot, "#3B82F6");
+
+    });
+
+});
+
+/*
+========================================
+BOOK PARKING
+========================================
+*/
+
+document.getElementById('bookBtn').addEventListener('click', () => {
+
+    if(!selectedSpot){
+        showMessage("Please select parking first!", "#EF4444");
+        return;
+    }
+
+    if(bookedSpots.includes(selectedSpot)){
+        showMessage("This parking is already booked!", "#EF4444");
+        return;
+    }
+
+    bookedSpots.push(selectedSpot);
+
+    localStorage.setItem('bookedSpots', JSON.stringify(bookedSpots));
+
+    const button = document.querySelector(`[data-id="${selectedSpot}"]`);
+
+    button.classList.remove('selected');
+    button.classList.add('booked');
+
+    showMessage("Booking Successful for " + selectedSpot + "!", "#22C55E");
+
+    selectedParkingText.textContent = "None";
+
+    selectedSpot = null;
+
+});
+
+/*
+========================================
+RESET SELECTION
+========================================
+*/
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+
+    parkingButtons.forEach(button => {
+
+        if(!button.classList.contains('booked')){
+            button.classList.remove('selected');
+            button.classList.add('available');
+        }
+
+    });
+
+    selectedSpot = null;
+
+    selectedParkingText.textContent = "None";
+
+    showMessage("Selection reset!", "#FFFFFF");
+
+});
+
+/*
+========================================
+SHOW MESSAGE
+========================================
+*/
+
+function showMessage(text,color){
+
+    message.textContent = text;
+    message.style.color = color;
+
+    setTimeout(() => {
+        message.textContent = "";
+    },3000);
+
+}
+
+</script>
+
+</body>
+</html>
